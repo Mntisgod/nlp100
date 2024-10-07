@@ -1,8 +1,4 @@
-# poplura-names.txtを入力として受け取る
-# そのファイルを読み込み、行数を数える
-
-# ファイルのパスを受け取る
-# 以下を関数にする
+# poplura-names.txtを入力として受け取り、処理を行う関数を用意
 
 function count_lines() {
   # ファイルの行数を数える
@@ -57,5 +53,6 @@ function sort_by_frequency_of_first_column(){
     cut -d ' ' -f 1 $1 | sort | uniq -c | sort -r > frequency.txt
 }
 
+# 関数を実行
 sort_by_frequency_of_first_column $1
 
