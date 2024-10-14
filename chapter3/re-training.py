@@ -4,6 +4,9 @@ import re
 import gzip
 import json
 
+import requests
+import urllib
+
 
 class RE:
     def __init__(self):
@@ -37,21 +40,38 @@ class RE:
     def extract_files(self, text):
         pattern = re.compile(r'\[\[ファイル:(.*?)\|')
         return pattern.findall(text)
+
+    # 25.26,27 テンプレートの抽出
+    def extract_templates(self, text, is_remove_emphasis=True, is_remove_inner_link=True):
+        pattern = re.compile(r'\{\{基礎情報(.*?)\n\}\}', re.DOTALL)
+        basic_info = pattern.search(text).group()
+        pattern = re.compile(r'\|(.*?) = (.*?)\n')
+        dict = {}
+        for m in pattern.finditer(basic_info):
+            if is_remove_emphasis:
+                dict[m[1]] = re.sub(r"''+", "", m[2])
+            else:
+                dict[m[1]] = m[2]
+            if is_remove_inner_link:
+                pass
+
+        return dict
     
-    # 25. テンプレートの抽出
-    def extract_templates(self, text):
-        pattern = re.compile(r'\{\{基礎情報(.*?\<references\>)', re.DOTALL)
-        basic_info = pattern.search(text)
-        print(basic_info.group(1))
-        if not basic_info:
-            return {}
-        pattern = re.compile(r'\|(.+?)\s*=\s*(.+?)(?=\n\||\n\}\})', re.DOTALL)
-        return dict(pattern.findall(basic_info.group(1)))
+    # 29 国旗画像のURLを取得
+    def extract_flag_url(self, file_name):
+        params = {
+            'action': 'query',
+            'titles': 'File:' + file_name,
+            'format': 'json',
+            'prop': 'imageinfo',
+            'iiprop': 'url'
+        }
+        url = 'https://www.mediawiki.org/w/api.php'
+        response = requests.get(url, params=params).json()
+        print(response['query']['pages']['-1']['imageinfo'][0]['url'])
 
     def main(self):
-        text = self.extract_UK()
-        dict = self.extract_templates(text)
-        print(dict)
+        self.extract_flag_url('Flag of the United Kingdom.svg')
 
 
 if __name__ == '__main__':
